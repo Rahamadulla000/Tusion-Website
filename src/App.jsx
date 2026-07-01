@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
@@ -77,7 +77,7 @@ function App() {
   useEffect(() => saveData('settings', settings), [settings]);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="app-shell">
         <Sidebar links={navLinks} />
         <main className="main-content">
@@ -114,7 +114,7 @@ function App() {
           </Routes>
         </main>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
