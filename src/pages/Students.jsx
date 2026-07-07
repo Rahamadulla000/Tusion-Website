@@ -62,24 +62,63 @@ export function Fees({ students, fees, setFees }) {
 }
 
 /* ===================== STUDENTS COMPONENT ===================== */
-function Students({ students, setStudents }) {
+function Students({ students, setStudents, isAdmin }) {
   const [editing, setEditing] = useState(null);
 
-  const addStudent = (data) => {
-    const entry = { id: Date.now(), ...data };
-    setStudents((prev) => [...prev, entry]);
-  };
+  
 
-  const updateStudent = (data) => {
-    setStudents((prev) =>
-      prev.map((s) => (s.id === data.id ? data : s))
-    );
-    setEditing(null);
-  };
+  const addStudent = async (data) => {
+  if (!isAdmin) return;
 
-  const removeStudent = (id) => {
-    setStudents((prev) => prev.filter((s) => s.id !== id));
-  };
+  const res = await fetch("http://localhost:4000/api/students", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  const student = await res.json();
+
+  setStudents((prev) => [...prev, student]);
+};
+
+ 
+
+
+  const updateStudent = async (data) => {
+  if (!isAdmin) return;
+
+  const res = await fetch(`http://localhost:4000/api/students/${data.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  const updated = await res.json();
+
+  setStudents((prev) =>
+    prev.map((s) => (s.id === updated.id ? updated : s))
+  );
+
+  setEditing(null);
+};
+
+
+
+
+const removeStudent = async (id) => {
+  if (!isAdmin) return;
+
+  await fetch(`http://localhost:4000/api/students/${id}`, {
+    method: "DELETE",
+  });
+
+  setStudents((prev) => prev.filter((s) => s.id !== id));
+};
+
 
   return (
     <div className="page">
@@ -95,11 +134,20 @@ function Students({ students, setStudents }) {
       <div className="grid grid-2">
         {/* FORM */}
         <div className="card">
-          <StudentForm
-            onSubmit={editing ? updateStudent : addStudent}
-            initialData={editing}
-            onCancel={() => setEditing(null)}
-          />
+          {isAdmin ? (
+            <StudentForm
+              onSubmit={editing ? updateStudent : addStudent}
+              initialData={editing}
+              onCancel={() => setEditing(null)}
+            />
+          ) : (
+            <div>
+              <h3>Admin Only</h3>
+              <p className="muted">
+                You have view-only access. Only admins can add or modify student records.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* TABLE */}
@@ -125,8 +173,8 @@ function Students({ students, setStudents }) {
                   <td>{s.parentName}</td>
                   <td>{s.phone}</td>
                   <td>
-                    <button onClick={() => setEditing(s)}>Edit</button>
-                    <button onClick={() => removeStudent(s.id)}>
+                    <button disabled={!isAdmin} onClick={() => setEditing(s)}>Edit</button>
+                    <button disabled={!isAdmin} onClick={() => removeStudent(s.id)}>
                       Delete
                     </button>
                   </td>
